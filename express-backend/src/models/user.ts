@@ -76,7 +76,7 @@ const userSchema = new mongoose.Schema<
     password: {
       type: String,
       required: [
-        function (this: { authMethod: string }) {
+        function (this: IUser) {
           return this.authMethod === "email";
         },
         "Password is required when login with email",
@@ -99,7 +99,7 @@ userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
         isGoogleOAuthIDUserExist &&
         isGoogleOAuthIDUserExist._id.toString() !== this._id.toString()
       ) {
-        throw new ErrorHandler("This google id is already used to regester");
+        throw new Error("Invalid email format");
       }
     }
 
@@ -119,7 +119,7 @@ userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
         });
         count++;
         if (count > 10) {
-          throw new ErrorHandler();
+          throw new Error();
         }
       }
       this.username = tempUserName.toLowerCase();
@@ -174,6 +174,6 @@ userSchema.methods.isValidPassword = async function (password: string) {
   }
 };
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model<IUser>("User", userSchema);
 
 export default User;
