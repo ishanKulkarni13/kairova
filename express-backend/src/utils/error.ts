@@ -1,11 +1,19 @@
 class ErrorHandler extends Error {
-  public statusCode: number;
+  public readonly statusCode: number;
+  public readonly isOperational: boolean;
 
-  constructor(message: string = "Internal server Error", statusCode: number = 500) {
+  constructor(
+    message: string = "Internal Server Error",
+    statusCode: number = 500
+  ) {
     super(message);
-    this.statusCode = statusCode;
 
-    Object.setPrototypeOf(this, ErrorHandler.prototype);
+    this.name = this.constructor.name;
+    this.statusCode = statusCode;
+    this.isOperational = true;
+
+    Object.setPrototypeOf(this, new.target.prototype);
+    Error.captureStackTrace(this, this.constructor);
   }
 }
 
