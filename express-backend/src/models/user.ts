@@ -2,7 +2,31 @@ import mongoose, { HydratedDocument } from "mongoose";
 import bcrypt from "bcrypt";
 import ErrorHandler from "../utils/error.js";
 
-const userSchema = new mongoose.Schema(
+export interface IUser {
+  name: string;
+  username?: string;
+  publicUID: number;
+  profilePic: {
+    public_id: string;
+    URL: string;
+  };
+  email: string;
+  authMethod: "email" | "google";
+  googleOAuthID?: string;
+  password?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IUserMethods {
+  isValidPassword(password: string): Promise<boolean>;
+}
+
+const userSchema = new mongoose.Schema<
+  IUser,
+  mongoose.Model<IUser>,
+  IUserMethods
+>(
   {
     name: {
       type: String,
@@ -62,7 +86,7 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-userSchema.pre("save", async function (this: HydratedDocument<any>) {
+userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
   try {
     // Check if googleOAuthID is provided and validate uniqueness
     if (this.isModified("googleOAuthID") && this.googleOAuthID && this.isNew) {
@@ -131,22 +155,22 @@ userSchema.pre("save", async function (this: HydratedDocument<any>) {
     if ((this.isModified("password") || this.isNew) && this.password) {
       this.password = await bcrypt.hash(this.password, 10);
     }
-
-    
   } catch (error) {
     throw error;
   }
 });
 
-userSchema.methods.isValidPassword = async function (password: string, user: HydratedDocument<any>) {
+userSchema.methods.isValidPassword = async function (password: string) {
+  if (!this.password) {
+    return false;
+  }
   try {
-    return await bcrypt.compare(password, user.password);
+    return await bcrypt.compare(password, this.password);
   } catch (error) {
-    console.log(`error in isValidPassword${error}`);
+    console.log(`error in isValidPassword ${error}`);
     return false;
   }
 };
-
 
 const User = mongoose.model("User", userSchema);
 
