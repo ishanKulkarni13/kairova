@@ -22,6 +22,8 @@ export interface IUserMethods {
   isValidPassword(password: string): Promise<boolean>;
 }
 
+export type UserDocument = HydratedDocument<IUser, IUserMethods>;
+
 const userSchema = new mongoose.Schema<
   IUser,
   mongoose.Model<IUser>,
@@ -90,7 +92,7 @@ userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
   try {
     // Check if googleOAuthID is provided and validate uniqueness
     if (this.isModified("googleOAuthID") && this.googleOAuthID && this.isNew) {
-      const isGoogleOAuthIDUserExist = await userModel.findOne({
+      const isGoogleOAuthIDUserExist = await User.findOne({
         googleOAuthID: this.googleOAuthID,
       });
       if (
@@ -106,13 +108,13 @@ userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
         .split(" ")[0]
         .toLowerCase()
         .replace(/\s+/g, "_");
-      let isUsernameExists = await userModel.exists({
+      let isUsernameExists = await User.exists({
         username: { $regex: new RegExp(tempUserName, "i") },
       });
       let count = 0;
       while (isUsernameExists) {
         tempUserName = `${this.name.split(" ")[0].toLowerCase().replace(/\s+/g, "_")}_${Math.floor(Math.random() * 1000)}${count}`;
-        isUsernameExists = await userModel.exists({
+        isUsernameExists = await User.exists({
           username: { $regex: new RegExp(tempUserName, "i") },
         });
         count++;
