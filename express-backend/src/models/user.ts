@@ -88,7 +88,7 @@ const userSchema = new mongoose.Schema<
   { timestamps: true },
 );
 
-userSchema.pre("save", async function (this: HydratedDocument<IUser>) {
+userSchema.pre("save", async function (this: UserDocument) {
   try {
     // Check if googleOAuthID is provided and validate uniqueness
     if (this.isModified("googleOAuthID") && this.googleOAuthID && this.isNew) {
