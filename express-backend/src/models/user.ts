@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
         function (this: { authMethod: string }) {
           return this.authMethod === "email";
         },
-        "Password is required when loggin with email",
+        "Password is required when login with email",
       ],
       minLength: [6, "Password must be of at least 6 characters"],
       select: false,
@@ -93,7 +93,7 @@ userSchema.pre("save", async function (this: HydratedDocument<any>) {
         });
         count++;
         if (count > 10) {
-          next(new ErrorHandler());
+          throw new ErrorHandler();
         }
       }
       this.username = tempUserName.toLowerCase();
@@ -147,5 +147,7 @@ userSchema.methods.isValidPassword = async function (password: string, user: Hyd
   }
 };
 
-const userModel = mongoose.model("User", userSchema);
-export default userModel;
+
+const User = mongoose.model("User", userSchema);
+
+export default User;
