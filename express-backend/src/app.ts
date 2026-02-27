@@ -1,29 +1,30 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
-import cors from 'cors'
-import tempRouter from './routes/temp.js';
-import { initializePassport } from './auth/passport.js';
-import session from 'express-session';
-import passport from 'passport';
+import cors from "cors";
+import tempRouter from "./routes/temp.js";
+import { initializePassport } from "./auth/passport.js";
+import session from "express-session";
+import passport from "passport";
+import { errorHandler } from "./middlewares/error.middleware.js";
 
-const app = express()
+const app = express();
 
 if (!process.env.SESSION_SECRET) {
   throw new Error("SESSION_SECRET is missing");
 }
 
-
 initializePassport();
 
-app.use(cors({
+app.use(
+  cors({
     origin: process.env.FRONTEND_URL ?? "http://localhost:5173",
-    methods:'GET,POST,PUT,DELETE',
-    credentials: true
-}));
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true,
+  }),
+);
 
-
-app.use(express.json())
+app.use(express.json());
 
 // session middleware
 app.use(
@@ -31,16 +32,19 @@ app.use(
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
-  })
+    cookie: {
+      secure: true,
+      httpOnly: true,
+      sameSite: "lax",
+    },
+  }),
 );
 
 // passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
 
+app.use("/temp", tempRouter);
 
-
-app.use("/temp", tempRouter)
-
-
+app.use(errorHandler);
 export default app;

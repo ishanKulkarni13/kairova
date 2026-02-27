@@ -1,21 +1,24 @@
-// use appErrorHandler from "./errorHandler";
-class ErrorHandler extends Error {
+import type { ErrorCode } from "../errors/errorCodes.js";
+
+export class AppError extends Error {
   public readonly statusCode: number;
+  public readonly code: ErrorCode;
   public readonly isOperational: boolean;
 
   constructor(
-    message: string = "Internal Server Error",
-    statusCode: number = 500
+    message: string,
+    statusCode: number,
+    code: ErrorCode,
+    isOperational: boolean = true
   ) {
     super(message);
 
     this.name = this.constructor.name;
     this.statusCode = statusCode;
-    this.isOperational = true;
+    this.code = code;
+    this.isOperational = isOperational;
 
     Object.setPrototypeOf(this, new.target.prototype);
     Error.captureStackTrace(this, this.constructor);
   }
 }
-
-export default ErrorHandler;
